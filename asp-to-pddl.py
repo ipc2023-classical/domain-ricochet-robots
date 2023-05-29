@@ -86,8 +86,8 @@ def main():
             robot = 'robot-{0}'.format(idx)
             robot_map[m.group(1)] = robot
             robots += [robot]
-            at += ['(at {0} cell-{1}-{2})' \
-                        .format(robot, m.group(2), m.group(3))]
+            at += ['(at {0} cell-{1}-{2}) ;; {3}' \
+                        .format(robot, m.group(2), m.group(3), m.group(1))]
             occupied += [(int(m.group(2)), int(m.group(3)))]
 
     free = []
