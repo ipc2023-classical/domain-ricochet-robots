@@ -43,6 +43,15 @@
     :precondition
         (and
             (nothing-is-moving)
+
+            ;; If we want to make sure that the robot can actually make a step
+            ;; in the specified direction, then we need to add the following
+            ;; (and the corresponding parameters ?cfrom and ?cto):
+            ;;
+            ;; (at ?r ?cfrom)
+            ;; (next ?cfrom ?cto ?dir)
+            ;; (free ?cto)
+            ;; (not (blocked ?cfrom ?dir))
         )
     :effect
         (and
