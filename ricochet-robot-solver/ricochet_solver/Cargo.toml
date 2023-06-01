@@ -1,0 +1,24 @@
+[package]
+name = "ricochet_solver"
+version = "0.1.0"
+authors = ["Carl Scherer <dev@cscher.com"]
+edition = "2018"
+
+[dependencies]
+chrono = "0.4.19"
+fxhash = "0.2.1"
+float-ord = "0.2.0"
+getset = "0.1.1"
+indexmap = "1.6.1"
+priority-queue = "1.0.5"
+rand = "0.8.3"
+ricochet_board = { path = "../ricochet_board" }
+
+[dev-dependencies]
+criterion = "0.3"
+itertools = "0.10.0"
+rayon = "1.5.0"
+
+[[bench]]
+name = "benchmarks"
+harness = false

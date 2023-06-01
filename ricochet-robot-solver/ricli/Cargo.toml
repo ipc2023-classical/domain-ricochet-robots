@@ -1,0 +1,10 @@
+[package]
+name = "ricli"
+version = "0.1.0"
+authors = ["Carl Scherer <dev@cscher.com>"]
+edition = "2018"
+
+[dependencies]
+ricochet_board = { path = "../ricochet_board" }
+ricochet_solver = { path = "../ricochet_solver" }
+text_io = "0.1.8"
