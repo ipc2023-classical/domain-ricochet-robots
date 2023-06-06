@@ -1,3 +1,7 @@
+**This is a copy of [Lireer/ricochet-robot-solver](https://github.com/Lireer/ricochet-robot-solver)**
+with few modifications made by Rebecca Eifler <eifler@cs.uni-saarland.de> allowing to feed the solver
+with the definition of the problem to its standard input.
+
 # Ricochet Robots Solver
 
 **Based on the work of: [Lireer/ricochet-robot-solver](https://github.com/Lireer/ricochet-robot-solver)**
