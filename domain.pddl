@@ -121,25 +121,4 @@
             (increase (total-cost) (stop-cost))
         )
 )
-
-;; (:action stop
-;;     :parameters (?r - robot ?cat - cell ?dir - direction)
-;;     :precondition
-;;         (and
-;;             (is-moving ?r ?dir)
-;;             (at ?r ?cat)
-;;             (or
-;;                 (blocked ?cat ?dir)
-;;                 (forall (?cnext - cell)
-;;                     (imply (next ?cat ?cnext ?dir) (not (free ?cnext)))
-;;                 )
-;;             )
-;;         )
-;;     :effect
-;;         (and
-;;             (not (is-moving ?r ?dir))
-;;             (nothing-is-moving)
-;;             (increase (total-cost) (stop-cost))
-;;         )
-;; )
 )
