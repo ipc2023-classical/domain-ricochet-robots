@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 
+import os
 import sys
 import re
 import random
+import subprocess
+
+TOPDIR = os.path.dirname(os.path.realpath(__file__))
+DRAW_BOARD = os.path.join(TOPDIR, '..', 'draw-board.py')
+SOLVER = os.path.join(TOPDIR, '..', 'ricochet-robot-solver', 'solve-pddl.py')
 
 pat_dim = re.compile(r'^dim\(([0-9]+)\)\.$')
 pat_barrier = re.compile(r'^barrier\(([0-9]+), *([0-9]+), *(south|north|east|west)\)\.$')
@@ -10,8 +16,8 @@ pat_length = re.compile(r'^length\(([0-9]+)\)\.$')
 pat_pos = re.compile(r'^pos\(([a-zA-Z_]+), *([0-9]+), *([0-9]+)\)\.$')
 pat_target = re.compile(r'^target\(([a-zA-Z_]+), *([0-9]+), *([0-9]+)\)\.$')
 
-def main():
-    asp = sys.stdin.read()
+def main(fnin, fnout, fnplan):
+    asp = open(fnin, 'r').read()
     asp = asp.split('\n')
     asp = [x.strip() for x in asp]
     asp = [x for x in asp if len(x) > 0]
@@ -154,9 +160,22 @@ def main():
 )
 
 '''
-    print(out)
 
+    fname = fnin.split('/')[-1]
+    header = f';; Generated from file {fname} from the ASP competition 2015\n'
+
+    cmd = ['python3', DRAW_BOARD, '-']
+    proc = subprocess.run(cmd, input = out, encoding = 'ascii',
+                          capture_output = True)
+    header += ';;\n'
+    header += proc.stdout
+
+    out = header + out
+    with open(fnout, 'w') as fout:
+        fout.write(out)
+
+    os.system(f'python3 {SOLVER} {fnout} {fnplan}')
     return 0
 
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(main(sys.argv[1], sys.argv[2], sys.argv[3]))

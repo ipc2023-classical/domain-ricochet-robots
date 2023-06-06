@@ -10,6 +10,8 @@ pat_blocked = re.compile(r'\(\s*blocked\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s*
 pat_at = re.compile(r'\(\s*at\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s*\)')
 pat_num = re.compile(r'[0-9]+')
 
+PDDL_PLAN = []
+
 def boardRow(start, cell):
     row = [start]
     cur = start
@@ -133,9 +135,14 @@ def applyStep(board, blocked, at, goal_at, step):
     direction = step[1]
 
     text = f'GO {robot} {direction}\n'
+    global PDDL_PLAN
+    PDDL_PLAN += [f'(go {robot} {direction})']
+    stopped = False
     while robot_at[robot] not in blocked[direction]:
         r, c = cellCoord(board, robot_at[robot])
         text += f'Step {robot} {r} {c} {direction}\n'
+        rfrom = r
+        cfrom = c
         if direction == 'south':
             r += 1
         elif direction == 'north':
@@ -145,8 +152,13 @@ def applyStep(board, blocked, at, goal_at, step):
         elif direction == 'east':
             c += 1
         if board[r][c] in robot_at.values():
+            stopped = True
+            PDDL_PLAN += [f'(stop-at-robot {robot} cell-{cfrom+1}-{rfrom+1} cell-{c+1}-{r+1} {direction})']
             break
+        PDDL_PLAN += [f'(step {robot} cell-{cfrom+1}-{rfrom+1} cell-{c+1}-{r+1} {direction})']
         robot_at[robot] = board[r][c]
+    if not stopped:
+        PDDL_PLAN += [f'(stop-at-barrier {robot} cell-{c+1}-{r+1} {direction})']
 
     b1 = boardAsStr(board, blocked, at, goal_at)
     at = { v : k for k, v in robot_at.items() }
@@ -171,60 +183,66 @@ def main(fn, planfn):
     }
     at = {}
     goal_at = {}
-    with open(fn, 'r') as fin:
-        in_init = False
-        in_goal = False
-        for line in fin:
-            if '(:init' in line:
-                in_init = True
-                in_goal = False
-            if '(:goal' in line:
-                in_init = False
-                in_goal = True
+    if fn == '-':
+        fin = sys.stdin
+    else:
+        fin = open(fn, 'r')
+    in_init = False
+    in_goal = False
+    for line in fin:
+        if '(:init' in line:
+            in_init = True
+            in_goal = False
+        if '(:goal' in line:
+            in_init = False
+            in_goal = True
 
-            if in_goal:
-                m = pat_at.search(line)
-                if m is not None:
-                    r = m.group(1)
-                    c = m.group(2)
-                    goal_at[c] = r
-
-            if not in_init:
-                continue
-
-            m = pat_next.search(line)
-            if m is not None:
-                fr = m.group(1)
-                to = m.group(2)
-                dr = m.group(3)
-
-                if fr not in cell[dr]:
-                    cell[dr][fr] = {}
-                assert(to not in cell[dr][fr])
-                cell[dr][fr][to] = True
-                cells[fr] = True
-                cells[to] = True
-
-            m = pat_blocked.search(line)
-            if m is not None:
-                c = m.group(1)
-                dr = m.group(2)
-                blocked[dr][c] = True
-
+        if in_goal:
             m = pat_at.search(line)
             if m is not None:
                 r = m.group(1)
                 c = m.group(2)
-                at[c] = r
+                goal_at[c] = r
 
+        if not in_init:
+            continue
+
+        m = pat_next.search(line)
+        if m is not None:
+            fr = m.group(1)
+            to = m.group(2)
+            dr = m.group(3)
+
+            if fr not in cell[dr]:
+                cell[dr][fr] = {}
+            assert(to not in cell[dr][fr])
+            cell[dr][fr][to] = True
+            cells[fr] = True
+            cells[to] = True
+
+        m = pat_blocked.search(line)
+        if m is not None:
+            c = m.group(1)
+            dr = m.group(2)
+            blocked[dr][c] = True
+
+        m = pat_at.search(line)
+        if m is not None:
+            r = m.group(1)
+            c = m.group(2)
+            at[c] = r
+
+    if planfn == '-':
+        fin = sys.stdin
+    else:
+        fin = open(planfn, 'r')
     plan = []
-    with open(planfn, 'r') as fin:
-        for line in fin:
-            if line.startswith('(go '):
-                s = line.split()
-                robot = s[1]
-                direction = s[2].strip(')')
-                plan += [(robot, direction)]
+    for line in fin:
+        if line.startswith('(go '):
+            s = line.split()
+            robot = s[1]
+            direction = s[2].strip(')')
+            plan += [(robot, direction)]
 
     cells = set(cells.keys())
     board = createBoard(cells, cell)
@@ -243,7 +261,19 @@ def main(fn, planfn):
     return 0
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print('Usage: {0} problem.pddl problem.plan'.format(sys.argv[0]))
+    if len(sys.argv) not in [3, 4]:
+        print('Usage: {0} problem.pddl problem.plan [full.plan]'.format(sys.argv[0]))
+        print('''
+This script evaluates the skeleton of the plan "problem.plan". Skeleton
+means that it reads only (go ...) action. However, if full.plan is
+specified, then it reconstructs and prints out the full plan.
+''')
+
         sys.exit(-1)
-    sys.exit(main(sys.argv[1], sys.argv[2]))
+
+    ret = main(sys.argv[1], sys.argv[2])
+    if ret == 0 and len(sys.argv) == 4:
+        with open(sys.argv[3], 'w') as fout:
+            for line in PDDL_PLAN:
+                print(line, file = fout)
+    sys.exit(ret)

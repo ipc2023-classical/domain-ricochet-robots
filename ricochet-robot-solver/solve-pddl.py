@@ -6,7 +6,10 @@ import subprocess
 import re
 
 TOPDIR = os.path.dirname(os.path.realpath(__file__))
+PYTHON = 'python3'
 SOLVER = os.path.join(TOPDIR, 'target', 'release', 'ricli')
+EVAL_PLAN = os.path.join(TOPDIR, '..', 'eval-plan.py')
+
 if not os.path.isfile(SOLVER):
     print('Cannot find solver {SOLVER}.' \
             ' Did you compile it with \'cargo build --release\'?')
@@ -164,12 +167,19 @@ def main(prob_fn, plan_fn):
     solstr = [x.strip() for x in solstr]
     solstr = [x for x in solstr if len(x) > 0]
 
+    skeleton = ''
+    for line in solstr[1:]:
+        r, d = line.split()
+        skeleton += f'(go {REMAP[r]} {REMAP[d]}) ;; {r} {d}\n'
+
+    cmd = [PYTHON, EVAL_PLAN, prob_fn, '-', plan_fn]
+    proc = subprocess.run(cmd, input = skeleton, encoding = 'ascii',
+                          capture_output = True)
+
+    data = open(plan_fn, 'r').read()
     with open(plan_fn, 'w') as fout:
         print(';; Optimal cost: {0}'.format(solstr[0].strip()), file = fout)
-
-        for line in solstr[1:]:
-            r, d = line.split()
-            print(f'(go {REMAP[r]} {REMAP[d]}) ;; {r} {d}', file = fout)
+        fout.write(data)
 
 
 if __name__ == '__main__':
@@ -177,7 +187,3 @@ if __name__ == '__main__':
         print('Usage: {0} problem.pddl problem.plan'.format(sys.argv[0]))
         sys.exit(-1)
     sys.exit(main(sys.argv[1], sys.argv[2]))
-    
-    
-# cat ../domain-ricochet-robots/board/test2.board | cargo run --release ricli -p -v
-

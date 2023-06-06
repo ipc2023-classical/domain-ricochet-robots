@@ -95,51 +95,55 @@ def main(fn):
     }
     at = {}
     goal_at = {}
-    with open(fn, 'r') as fin:
-        in_init = False
-        in_goal = False
-        for line in fin:
-            if '(:init' in line:
-                in_init = True
-                in_goal = False
-            if '(:goal' in line:
-                in_init = False
-                in_goal = True
+    if fn == '-':
+        fin = sys.stdin
+    else:
+        fin = open(fn, 'r')
 
-            if in_goal:
-                m = pat_at.search(line)
-                if m is not None:
-                    r = m.group(1)
-                    c = m.group(2)
-                    goal_at[c] = r
+    in_init = False
+    in_goal = False
+    for line in fin:
+        if '(:init' in line:
+            in_init = True
+            in_goal = False
+        if '(:goal' in line:
+            in_init = False
+            in_goal = True
 
-            if not in_init:
-                continue
-
-            m = pat_next.search(line)
-            if m is not None:
-                fr = m.group(1)
-                to = m.group(2)
-                dr = m.group(3)
-
-                if fr not in cell[dr]:
-                    cell[dr][fr] = {}
-                assert(to not in cell[dr][fr])
-                cell[dr][fr][to] = True
-                cells[fr] = True
-                cells[to] = True
-
-            m = pat_blocked.search(line)
-            if m is not None:
-                c = m.group(1)
-                dr = m.group(2)
-                blocked[dr][c] = True
-
+        if in_goal:
             m = pat_at.search(line)
             if m is not None:
                 r = m.group(1)
                 c = m.group(2)
-                at[c] = r
+                goal_at[c] = r
+
+        if not in_init:
+            continue
+
+        m = pat_next.search(line)
+        if m is not None:
+            fr = m.group(1)
+            to = m.group(2)
+            dr = m.group(3)
+
+            if fr not in cell[dr]:
+                cell[dr][fr] = {}
+            assert(to not in cell[dr][fr])
+            cell[dr][fr][to] = True
+            cells[fr] = True
+            cells[to] = True
+
+        m = pat_blocked.search(line)
+        if m is not None:
+            c = m.group(1)
+            dr = m.group(2)
+            blocked[dr][c] = True
+
+        m = pat_at.search(line)
+        if m is not None:
+            r = m.group(1)
+            c = m.group(2)
+            at[c] = r
 
     cells = set(cells.keys())
     board = createBoard(cells, cell)
@@ -148,5 +152,8 @@ def main(fn):
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         print('Usage: {0} problem.pddl'.format(sys.argv[0]))
+        print('''
+Draws a board with placements of all robots and the goal in ascii art
+''')
         sys.exit(-1)
     sys.exit(main(sys.argv[1]))
