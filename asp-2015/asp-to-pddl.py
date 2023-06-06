@@ -8,7 +8,7 @@ import subprocess
 
 TOPDIR = os.path.dirname(os.path.realpath(__file__))
 DRAW_BOARD = os.path.join(TOPDIR, '..', 'draw-board.py')
-SOLVER = os.path.join(TOPDIR, '..', 'ricochet-robot-solver', 'solve-pddl.py')
+SOLVER = os.path.join(TOPDIR, '..', 'solve-pddl.py')
 
 pat_dim = re.compile(r'^dim\(([0-9]+)\)\.$')
 pat_barrier = re.compile(r'^barrier\(([0-9]+), *([0-9]+), *(south|north|east|west)\)\.$')
