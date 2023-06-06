@@ -91,6 +91,9 @@ fn main() {
 
     let path = IdaStar::new().solve(&round, robopos);
     println!("{}", path.len());
+    for (robot, direction) in path.movements().iter(){
+        println!("{} {}", robot, direction);
+    }
     
     if args.len() > 3 && &args[3] == "-v"{
         let movements = path.movements();
