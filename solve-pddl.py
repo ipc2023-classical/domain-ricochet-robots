@@ -1,7 +1,19 @@
 #!/usr/bin/env python3
 
+import os
 import sys
+import subprocess
 import re
+
+TOPDIR = os.path.dirname(os.path.realpath(__file__))
+PYTHON = 'python3'
+SOLVER = os.path.join(TOPDIR, 'solver', 'target', 'release', 'ricli')
+EVAL_PLAN = os.path.join(TOPDIR,  'eval-plan.py')
+
+if not os.path.isfile(SOLVER):
+    print('Cannot find solver {SOLVER}.' \
+            ' Did you compile it with \'cargo build --release\'?')
+    sys.exit(-1)
 
 pat_next = re.compile(r'\(\s*next\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s*\)')
 pat_blocked = re.compile(r'\(\s*blocked\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s*\)')
@@ -35,38 +47,42 @@ def createBoard(cells, cell):
 
     return board
 
-def printBoard(board, blocked, at, goal_at):
+def genBoard(board, blocked, at, goal_at):
+    s = ''
     num_rows = len(board)
     num_cols = len(board[0])
     
     assert num_rows == num_cols , "Board needs to be a square!"
     
-    print(num_rows);
+    s += str(num_rows) + '\n'
 
     for x in range(num_cols):
         for y in range(num_rows):
             if board[x][y] in blocked['south']:
-                print(str(y) + ' ' + str(x) + ' d')
+                s += str(y) + ' ' + str(x) + ' d' + '\n'
             if board[x][y] in blocked['east']:
-                print(str(y) + ' ' + str(x) + ' r')
+                s += str(y) + ' ' + str(x) + ' r' + '\n'
                 
-    print("T")
+    s += 'T\n'
     for cell, robot in goal_at.items():
         target_coordinates = cell.split('-')[1:]
         robot_id = robot.replace('robot-','')
         x = int(target_coordinates[0]) - 1
         y = int(target_coordinates[1]) - 1
-        print(str(x) + ' ' + str(y) + ' ' + robot_num_to_color[robot_id])
+        s += str(x) + ' ' + str(y) + ' ' + robot_num_to_color[robot_id]
+        s += '\n'
     
     for cell, robot in at.items():
         target_coordinates = cell.split('-')[1:]
         robot_id = robot.replace('robot-','')
         x = int(target_coordinates[0]) - 1
         y = int(target_coordinates[1]) - 1
-        print(str(x) + ' ' + str(y) + ' ' + robot_num_to_color[robot_id])
+        s += str(x) + ' ' + str(y) + ' ' + robot_num_to_color[robot_id]
+        s += '\n'
+    return s
 
 
-def main(fn):
+def genSolverInput(fn):
     cells = {}
     cell = {
         'south' : {},
@@ -130,13 +146,44 @@ def main(fn):
 
     cells = set(cells.keys())
     board = createBoard(cells, cell)
-    printBoard(board, blocked, at, goal_at)
+    return genBoard(board, blocked, at, goal_at)
+
+
+REMAP = {
+    'Red' : 'robot-1',
+    'Blue' : 'robot-2',
+    'Green' : 'robot-3',
+    'Yellow' : 'robot-4',
+    'Down' : 'south',
+    'Up' : 'north',
+    'Left' : 'west',
+    'Right' : 'east',
+}
+def main(prob_fn, plan_fn):
+    solver_input = genSolverInput(prob_fn)
+    proc = subprocess.run(SOLVER, input = solver_input, encoding = 'ascii',
+                          capture_output = True)
+    solstr = proc.stdout.split('\n')
+    solstr = [x.strip() for x in solstr]
+    solstr = [x for x in solstr if len(x) > 0]
+
+    skeleton = ''
+    for line in solstr[1:]:
+        r, d = line.split()
+        skeleton += f'(go {REMAP[r]} {REMAP[d]}) ;; {r} {d}\n'
+
+    cmd = [PYTHON, EVAL_PLAN, prob_fn, '-', plan_fn]
+    proc = subprocess.run(cmd, input = skeleton, encoding = 'ascii',
+                          capture_output = True)
+
+    data = open(plan_fn, 'r').read()
+    with open(plan_fn, 'w') as fout:
+        print(';; Optimal cost: {0}'.format(solstr[0].strip()), file = fout)
+        fout.write(data)
+
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print('Usage: {0} problem.pddl'.format(sys.argv[0]))
+    if len(sys.argv) != 3:
+        print('Usage: {0} problem.pddl problem.plan'.format(sys.argv[0]))
         sys.exit(-1)
-    sys.exit(main(sys.argv[1]))
-    
-    
-# cat ../domain-ricochet-robots/board/test2.board | cargo run --release ricli -p -v
+    sys.exit(main(sys.argv[1], sys.argv[2]))
