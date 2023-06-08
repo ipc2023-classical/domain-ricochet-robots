@@ -7,8 +7,8 @@ import random
 import subprocess
 
 TOPDIR = os.path.dirname(os.path.realpath(__file__))
-DRAW_BOARD = os.path.join(TOPDIR, '..', 'draw-board.py')
-SOLVER = os.path.join(TOPDIR, '..', 'solve-pddl.py')
+DRAW_BOARD = os.path.join(TOPDIR, 'draw-board.py')
+SOLVER = os.path.join(TOPDIR, 'solve-pddl.py')
 
 pat_dim = re.compile(r'^dim\(([0-9]+)\)\.$')
 pat_barrier = re.compile(r'^barrier\(([0-9]+), *([0-9]+), *(south|north|east|west)\)\.$')
@@ -81,6 +81,12 @@ def main(fnin, fnout, fnplan):
             assert(y > 0 and y <= dim)
             blocked += [f'(blocked cell-{x}-{y} {direction})']
 
+    robot_idx = {
+        'red' : 1,
+        'blue' : 2,
+        'green' : 3,
+        'yellow' : 4,
+    }
     robots = []
     at = []
     occupied = []
@@ -88,7 +94,7 @@ def main(fnin, fnout, fnplan):
     for line in asp:
         m = pat_pos.match(line)
         if m is not None:
-            idx = len(robots) + 1
+            idx = robot_idx[m.group(1)]
             robot = 'robot-{0}'.format(idx)
             robot_map[m.group(1)] = robot
             robots += [robot]
@@ -174,8 +180,13 @@ def main(fnin, fnout, fnplan):
     with open(fnout, 'w') as fout:
         fout.write(out)
 
-    os.system(f'python3 {SOLVER} {fnout} {fnplan}')
+    ret = os.system(f'python3 {SOLVER} {fnout} {fnplan}')
+    if ret != 0:
+        return -1
     return 0
 
 if __name__ == '__main__':
+    if len(sys.argv) != 4:
+        print('Usage: {0} problem.asp problem.pddl problem.plan'.format(sys.argv[0]))
+        sys.exit(-1)
     sys.exit(main(sys.argv[1], sys.argv[2], sys.argv[3]))

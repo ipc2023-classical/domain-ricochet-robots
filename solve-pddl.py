@@ -5,6 +5,8 @@ import sys
 import subprocess
 import re
 
+TIME_LIMIT = 600
+
 TOPDIR = os.path.dirname(os.path.realpath(__file__))
 PYTHON = 'python3'
 SOLVER = os.path.join(TOPDIR, 'solver', 'target', 'release', 'ricli')
@@ -161,7 +163,8 @@ REMAP = {
 }
 def main(prob_fn, plan_fn):
     solver_input = genSolverInput(prob_fn)
-    proc = subprocess.run(SOLVER, input = solver_input, encoding = 'ascii',
+    cmd = ['timeout', f'{TIME_LIMIT}s', SOLVER]
+    proc = subprocess.run(cmd, input = solver_input, encoding = 'ascii',
                           capture_output = True)
     solstr = proc.stdout.split('\n')
     solstr = [x.strip() for x in solstr]
@@ -175,6 +178,9 @@ def main(prob_fn, plan_fn):
     cmd = [PYTHON, EVAL_PLAN, prob_fn, '-', plan_fn]
     proc = subprocess.run(cmd, input = skeleton, encoding = 'ascii',
                           capture_output = True)
+    if 'PLAN FAILED' in proc.stdout:
+        print('Cannot find a plan')
+        return -1
 
     data = open(plan_fn, 'r').read()
     with open(plan_fn, 'w') as fout:
