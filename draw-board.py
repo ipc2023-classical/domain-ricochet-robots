@@ -3,8 +3,8 @@
 import sys
 import re
 
-pat_next = re.compile(r'\(\s*next\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s*\)')
-pat_blocked = re.compile(r'\(\s*blocked\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s*\)')
+pat_next = re.compile(r'\(\s*NEXT\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s*\)')
+pat_blocked = re.compile(r'\(\s*BLOCKED\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s*\)')
 pat_at = re.compile(r'\(\s*at\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s*\)')
 pat_num = re.compile(r'[0-9]+')
 

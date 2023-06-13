@@ -38,31 +38,31 @@ def main(fnin, fnout, fnplan):
     next_cell = []
     for x in range(1, dim + 1):
         for y in range(1, dim):
-            next_cell += ['(next cell-{0}-{1} cell-{0}-{2} south)'.format(x, y, y + 1)]
+            next_cell += ['(NEXT cell-{0}-{1} cell-{0}-{2} south)'.format(x, y, y + 1)]
     for x in range(1, dim + 1):
         for y in range(dim, 1, -1):
-            next_cell += ['(next cell-{0}-{1} cell-{0}-{2} north)'.format(x, y, y - 1)]
+            next_cell += ['(NEXT cell-{0}-{1} cell-{0}-{2} north)'.format(x, y, y - 1)]
     for y in range(1, dim + 1):
         for x in range(1, dim):
-            next_cell += ['(next cell-{1}-{0} cell-{2}-{0} east)'.format(y, x, x + 1)]
+            next_cell += ['(NEXT cell-{1}-{0} cell-{2}-{0} east)'.format(y, x, x + 1)]
     for y in range(1, dim + 1):
         for x in range(dim, 1, -1):
-            next_cell += ['(next cell-{1}-{0} cell-{2}-{0} west)'.format(y, x, x - 1)]
+            next_cell += ['(NEXT cell-{1}-{0} cell-{2}-{0} west)'.format(y, x, x - 1)]
 
     blocked = []
     for x in range(1, dim + 1):
-        blocked += ['(blocked cell-{0}-1 north)'.format(x)]
-        blocked += ['(blocked cell-{0}-{1} south)'.format(x, dim)]
+        blocked += ['(BLOCKED cell-{0}-1 north)'.format(x)]
+        blocked += ['(BLOCKED cell-{0}-{1} south)'.format(x, dim)]
     for y in range(1, dim + 1):
-        blocked += ['(blocked cell-1-{0} west)'.format(y)]
-        blocked += ['(blocked cell-{1}-{0} east)'.format(y, dim)]
+        blocked += ['(BLOCKED cell-1-{0} west)'.format(y)]
+        blocked += ['(BLOCKED cell-{1}-{0} east)'.format(y, dim)]
     for line in asp:
         m = pat_barrier.match(line)
         if m is not None:
             x = int(m.group(1))
             y = int(m.group(2))
             direction = m.group(3)
-            blocked += [f'(blocked cell-{x}-{y} {direction})']
+            blocked += [f'(BLOCKED cell-{x}-{y} {direction})']
 
             if direction == 'east':
                 direction = 'west'
@@ -79,7 +79,7 @@ def main(fnin, fnout, fnplan):
 
             assert(x > 0 and x <= dim)
             assert(y > 0 and y <= dim)
-            blocked += [f'(blocked cell-{x}-{y} {direction})']
+            blocked += [f'(BLOCKED cell-{x}-{y} {direction})']
 
     robot_idx = {
         'red' : 1,
@@ -188,5 +188,9 @@ def main(fnin, fnout, fnplan):
 if __name__ == '__main__':
     if len(sys.argv) != 4:
         print('Usage: {0} problem.asp problem.pddl problem.plan'.format(sys.argv[0]))
+        print('''
+This script translates the ASP problems into PDDL problem file.
+It also calls the solver solve-pddl.py and puts the (optimal) plan into the plan file.
+''')
         sys.exit(-1)
     sys.exit(main(sys.argv[1], sys.argv[2], sys.argv[3]))

@@ -125,6 +125,15 @@ def main(min_board_size, max_board_size, max_steps):
 if __name__ == '__main__':
     if len(sys.argv) != 4:
         print(f'Usage: {sys.argv[0]} min-board-size max-board-size max-steps', file = sys.stderr)
+        print('''
+This script generates random instances.
+It makes {max-steps} steps. In each step, it generates a square NxN board
+where N is chosen randomly between {min-board-size} and {max-board-size}.
+Then it places between 5 and 5 + N^2 / 3 barriers inside the board.
+The resulting files are named p-{N}-{optimal-cost}.*
+
+This script relies on asp-to-pddl.py.
+''', file = sys.stderr)
         sys.exit(-1)
     sys.exit(main(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])))
 

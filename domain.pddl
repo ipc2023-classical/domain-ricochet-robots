@@ -1,5 +1,5 @@
 (define (domain ricochet-robots)
-(:requirements :typing :adl)
+(:requirements :typing :adl :action-costs)
 
 (:types
     robot - object
@@ -9,9 +9,9 @@
 
 (:predicates
     ;; ?cnext is right next to ?c in the direction of ?dir
-    (next ?c - cell ?cnext - cell ?dir - direction)
+    (NEXT ?c - cell ?cnext - cell ?dir - direction)
     ;; moving from ?c in the direction ?dir is blocked
-    (blocked ?c - cell ?dir - direction)
+    (BLOCKED ?c - cell ?dir - direction)
     ;; Robot ?r is located in the cell ?c
     (at ?r - robot ?c - cell)
     ;; No robot is located in the cell ?c
@@ -49,9 +49,9 @@
             ;; (and the corresponding parameters ?cfrom and ?cto):
             ;;
             ;; (at ?r ?cfrom)
-            ;; (next ?cfrom ?cto ?dir)
+            ;; (NEXT ?cfrom ?cto ?dir)
             ;; (free ?cto)
-            ;; (not (blocked ?cfrom ?dir))
+            ;; (not (BLOCKED ?cfrom ?dir))
         )
     :effect
         (and
@@ -70,9 +70,9 @@
         (and
             (is-moving ?r ?dir)
             (at ?r ?cfrom)
-            (next ?cfrom ?cto ?dir)
+            (NEXT ?cfrom ?cto ?dir)
             (free ?cto)
-            (not (blocked ?cfrom ?dir))
+            (not (BLOCKED ?cfrom ?dir))
         )
     :effect
         (and
@@ -86,7 +86,7 @@
 
 ;; Stopping of the robot is split between
 ;; (i) stop-at-barrier which stops the robot if it cannot move further due to
-;;     a barrier expressed with (blocked ...) predicate
+;;     a barrier expressed with (BLOCKED ...) predicate
 ;; (ii) stop-at-robot which stops the robot if the next step is blocked by
 ;;      another robot
 (:action stop-at-barrier
@@ -95,7 +95,7 @@
         (and
             (is-moving ?r ?dir)
             (at ?r ?cat)
-            (blocked ?cat ?dir)
+            (BLOCKED ?cat ?dir)
         )
     :effect
         (and
@@ -111,7 +111,7 @@
         (and
             (is-moving ?r ?dir)
             (at ?r ?cat)
-            (next ?cat ?cnext ?dir)
+            (NEXT ?cat ?cnext ?dir)
             (not (free ?cnext))
         )
     :effect

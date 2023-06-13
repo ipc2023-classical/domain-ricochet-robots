@@ -17,8 +17,8 @@ if not os.path.isfile(SOLVER):
             ' Did you compile it with \'cargo build --release\'?')
     sys.exit(-1)
 
-pat_next = re.compile(r'\(\s*next\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s*\)')
-pat_blocked = re.compile(r'\(\s*blocked\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s*\)')
+pat_next = re.compile(r'\(\s*NEXT\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s*\)')
+pat_blocked = re.compile(r'\(\s*BLOCKED\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s*\)')
 pat_at = re.compile(r'\(\s*at\s+([a-zA-Z0-9_-]+)\s+([a-zA-Z0-9_-]+)\s*\)')
 pat_num = re.compile(r'[0-9]+')
 
@@ -191,5 +191,12 @@ def main(prob_fn, plan_fn):
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         print('Usage: {0} problem.pddl problem.plan'.format(sys.argv[0]))
+        print('''
+This script solves the given task via the solver in the solver/ directory
+and write the resulting plan "skeleton" into the problem.plan file.
+The "skeleton" means that only (go ...) actions are printed out without the
+immediate (zero cost) steps that are actually required. However, eval-plan.py
+can turn this skeleton into a full plan.
+''')
         sys.exit(-1)
     sys.exit(main(sys.argv[1], sys.argv[2]))
