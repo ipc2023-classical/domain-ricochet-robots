@@ -91,6 +91,7 @@ def main(fnin, fnout, fnplan):
     at = []
     occupied = []
     robot_map = {}
+    robot_at = []
     for line in asp:
         m = pat_pos.match(line)
         if m is not None:
@@ -98,9 +99,10 @@ def main(fnin, fnout, fnplan):
             robot = 'robot-{0}'.format(idx)
             robot_map[m.group(1)] = robot
             robots += [robot]
-            at += ['(at {0} cell-{1}-{2}) ;; {3}' \
-                        .format(robot, m.group(2), m.group(3), m.group(1))]
+            robot_at += ['(at {0} cell-{1}-{2}) ;; {3}' \
+                            .format(robot, m.group(2), m.group(3), m.group(1))]
             occupied += [(int(m.group(2)), int(m.group(3)))]
+    at += sorted(robot_at)
 
     free = []
     for x in range(1, dim + 1):

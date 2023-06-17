@@ -138,6 +138,7 @@ def applyStep(board, blocked, at, goal_at, step):
     global PDDL_PLAN
     PDDL_PLAN += [f'(go {robot} {direction})']
     stopped = False
+    r, c = 0, 0
     while robot_at[robot] not in blocked[direction]:
         r, c = cellCoord(board, robot_at[robot])
         text += f'Step {robot} {r} {c} {direction}\n'
